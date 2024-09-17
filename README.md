@@ -1,3 +1,11 @@
+enviRule for Python
+=
+
+This repository is a fork of enviRule. It has been edited to create a Py4J gateway that allows enviRule, Ambit-SMIRKS reaction running and SMILES standardisation to be called from Python.
+
+Below is the original README.md
+
+---
 Introduction
 ============
 
@@ -26,7 +34,7 @@ Quick start
 ======================
 Make sure you have java installed on the computer, for example:
 ```markdown
-java version "16.0.1" 2021-04-20
+java version "22.0.1" 2021-04-20
 Java(TM) SE Runtime Environment (build 16.0.1+9-24)
 Java HotSpot(TM) 64-Bit Server VM (build 16.0.1+9-24, mixed mode, sharing)
 ```

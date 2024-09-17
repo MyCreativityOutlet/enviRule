@@ -73,43 +73,45 @@ public class rxn_clusterer {
         BufferedReader br = new BufferedReader(new FileReader(file));
         String line;
         String[] line_array;
-        String reaction;
+        String reaction = "";
         List<String> reactions = new ArrayList<String>();
         int count = 0;
 
         while ((line = br.readLine()) != null){
+            try {
+                count += 1;
+                if (count % 50 == 0) {
+                    System.out.println("Processing " + count + "th reaction");
+                }
 
-            count += 1;
-            if(count % 50 == 0){
-                System.out.println("--------------------------------------------------------------------------------");
-                System.out.println("Processing " + count + "th reaction");
-                System.out.println("--------------------------------------------------------------------------------");
-            }
+                // Sanity check for ">>"
+                if (line.indexOf(">>") == -1) {
+                    // If it's not a valid reaction SMIRKS, then skip
+                    continue;
+                }
 
-            // Sanity check for ">>"
-            if(line.indexOf(">>") == -1){
-                // If it's not a valid reaction SMIRKS, then skip
-                continue;
-            }
+                // Remove "\n" of each line
+                line_array = line.split("\n");
+                reaction = line_array[0];
 
-            // Remove "\n" of each line
-            line_array = line.split("\n");
-            reaction = line_array[0];
+                // Skip reactions with only CO2 as product.
+                if (reaction.split(">>").length < 2) continue;
+                String product = reaction.split(">>")[1];
+                if (product.compareTo("C(=O)=O") == 0) continue;
 
-            // Skip reactions with only CO2 as product.
-            if(reaction.split(">>").length < 2) continue;
-            String product = reaction.split(">>")[1];
-            if (product.compareTo("C(=O)=O") == 0) continue;
+                reactions.add(reaction);
 
-            reactions.add(reaction);
+                IReaction Reaction = smilesParser.parseReactionSmiles(reaction);
+                IReaction performAtomAtomMapping = performAtomAtomMapping(Reaction, "null");
+                BondChangeCalculator bcc = new BondChangeCalculator(performAtomAtomMapping);
+                bcc.computeBondChanges(true, false);
 
-            IReaction Reaction = smilesParser.parseReactionSmiles(reaction);
-            IReaction performAtomAtomMapping = performAtomAtomMapping(Reaction, "null");
-            BondChangeCalculator bcc = new BondChangeCalculator(performAtomAtomMapping);
-            bcc.computeBondChanges(true, false);
-
-            if(!reactionFPs.containsKey(reaction)){
-                reactionFPs.put(reaction, getChangedBonds(performAtomAtomMapping, bcc));
+                if (!reactionFPs.containsKey(reaction)) {
+                    reactionFPs.put(reaction, getChangedBonds(performAtomAtomMapping, bcc));
+                }
+            }catch (Exception e) {
+                System.out.println(reaction);
+                throw e;
             }
         }
         return reactions;

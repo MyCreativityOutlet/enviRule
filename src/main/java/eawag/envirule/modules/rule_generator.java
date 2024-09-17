@@ -38,23 +38,21 @@ public class rule_generator {
     private boolean includeFunctionalGroups;
     private String file;
     private int radius;
+    private List<String> reactions;
 
     private final SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
     private final SmilesGenerator sg = new SmilesGenerator(SmiFlavor.AtomAtomMap);
     private final Aromaticity aromaticity = new Aromaticity(ElectronDonation.daylight(), Cycles.or(Cycles.all(), Cycles.edgeShort()));
 
-    public rule_generator(boolean generalizeIgnoreHydrogen, boolean includeFunctionalGroups, String file, int radius){
+    public rule_generator(boolean generalizeIgnoreHydrogen, boolean includeFunctionalGroups, List<String> reactions, int radius){
         this.generalizeIgnoreHydrogen = generalizeIgnoreHydrogen;
         this.includeFunctionalGroups = includeFunctionalGroups;
-        this.file = file;
+        this.reactions = reactions;
         this.radius = radius;
     }
 
     public Set<String> generate() throws  Exception {
-
-
-
-        List<String> reactions = parseReactionFile(file);
+        //List<String> reactions = parseReactionFile(file);
         List<String> baseRules = new ArrayList<>();
         // Generalized form of rules
         List<String> newRules = new ArrayList<>();
@@ -70,81 +68,89 @@ public class rule_generator {
 
         // Get rules for each reaction
         for(int i=0; i<reactions.size(); i++){
+            try {
+                // Unmapped form of each reaction
+                String unmapped = reactions.get(i);
+                String[] components = unmapped.split(">>"); // components[0]: reactants; components[1]: products
+                String reactants = components[0];
+                String products = components[1];
+                // Remove catalysts from reaction
+                // Note: now it can only remove catalysts if they show in both reactants and products.
+                Set<String> reactants_set = new HashSet<>();
+                Set<String> products_set = new HashSet<>();
 
-            // Unmapped form of each reaction
-            String unmapped = reactions.get(i);
-            String[] components = unmapped.split(">>"); // components[0]: reactants; components[1]: products
-            String reactants = components[0];
-            String products = components[1];
-
-            // Remove catalysts from reaction
-            // Note: now it can only remove catalysts if they show in both reactants and products.
-            Set<String> reactants_set = new HashSet<>();
-            Set<String> products_set = new HashSet<>();
-
-            if(reactants.contains(".")){
-                reactants_set.addAll(List.of(reactants.split("\\.")));
-            }
-            if(products.contains(".")){
-                products_set.addAll(List.of(products.split("\\.")));
-            }
-
-            unmapped = "";
-
-            if(reactants_set.size() != 0){
-                for(String reactant: reactants.split("\\.")){
-                    if(products_set.contains(reactant)) continue; // If one compound shows in both reactants and products
-                    unmapped += reactant + ".";
+                if (reactants.contains(".")) {
+                    reactants_set.addAll(List.of(reactants.split("\\.")));
                 }
-            }else{
-                // It means there is only one reactant
-                unmapped = reactants;
-            }
-
-            // If all compounds in reactants can also be found in products, then this reaction is problematic and should be skipped
-            if(unmapped.length() == 0) continue;
-
-            // Remove the redundant dot for reactants part
-            if(unmapped.charAt(unmapped.length()-1) == '.'){
-                unmapped = unmapped.substring(0, unmapped.length()-1);
-            }
-
-            // Append reaction sign
-            unmapped += ">>";
-
-            // Remove catalysts for products
-            String unmapped_product = "";
-
-            if(products_set.size() != 0){
-                for(String product:products.split("\\.")){
-                    if(reactants_set.contains(product)) continue;
-                    unmapped_product += product + ".";
+                if (products.contains(".")) {
+                    products_set.addAll(List.of(products.split("\\.")));
                 }
 
-                if(unmapped_product.charAt(unmapped_product.length()-1) == '.'){
-                    unmapped_product = unmapped_product.substring(0, unmapped_product.length()-1);
+                unmapped = "";
+
+                if (reactants_set.size() != 0) {
+                    for (String reactant : reactants.split("\\.")) {
+                        if (products_set.contains(reactant))
+                            continue; // If one compound shows in both reactants and products
+                        unmapped += reactant + ".";
+                    }
+                } else {
+                    // It means there is only one reactant
+                    unmapped = reactants;
                 }
-            }else{
-                // If there is no dot in products, then there is only one single product
-                unmapped_product += products;
+
+                // If all compounds in reactants can also be found in products, then this reaction is problematic and should be skipped
+                if (unmapped.length() == 0) continue;
+
+                // Remove the redundant dot for reactants part
+                if (unmapped.charAt(unmapped.length() - 1) == '.') {
+                    unmapped = unmapped.substring(0, unmapped.length() - 1);
+                }
+
+                // Append reaction sign
+                unmapped += ">>";
+
+                // Remove catalysts for products
+                String unmapped_product = "";
+
+                if (products_set.size() != 0) {
+                    for (String product : products.split("\\.")) {
+                        if (reactants_set.contains(product)) continue;
+                        unmapped_product += product + ".";
+                    }
+                    try {
+                        if (unmapped_product.charAt(unmapped_product.length() - 1) == '.') {
+                            unmapped_product = unmapped_product.substring(0, unmapped_product.length() - 1);
+                        }
+                    } catch (Exception e) {
+                        System.out.println(reactions.get(i));
+                        throw e;
+                    }
+                } else {
+                    // If there is no dot in products, then there is only one single product
+                    unmapped_product += products;
+                }
+
+                // If everything in products can be found in reactants, then this reaction is problematic and should be skipped
+                if (unmapped_product.length() == 0) continue;
+
+                unmapped += unmapped_product;
+
+                if (checkCoA(unmapped)) {
+                    coa_count += 1;
+                }
+
+                IReaction Reaction = sp.parseReactionSmiles(unmapped);
+                IReaction performAtomAtomMapping = performAtomAtomMapping(Reaction, null);
+                atomMappingReactions.add(performAtomAtomMapping);
+
+                String base_rule = getNewRule(performAtomAtomMapping, sg, 0, false);
+                baseRules.add(base_rule);
+                newRules.add(generalizedForm(base_rule, performAtomAtomMapping, sp, sg, radius, false));
+            } catch (Exception e) {
+                System.out.println(reactions.get(i));
+                throw e;
             }
-
-            // If everything in products can be found in reactants, then this reaction is problematic and should be skipped
-            if(unmapped_product.length() == 0) continue;
-
-            unmapped += unmapped_product;
-
-            if(checkCoA(unmapped)) {
-                coa_count += 1;
-            }
-
-            IReaction Reaction = sp.parseReactionSmiles(unmapped);
-            IReaction performAtomAtomMapping = performAtomAtomMapping(Reaction, null);
-            atomMappingReactions.add(performAtomAtomMapping);
-
-            String base_rule = getNewRule(performAtomAtomMapping, sg, 0, false);
-            baseRules.add(base_rule);
-            newRules.add(generalizedForm(base_rule, performAtomAtomMapping, sp, sg, radius, false));
         }
 
         if (coa_count != 0 && coa_count >= (reactions.size()/2)){
@@ -1015,7 +1021,7 @@ public class rule_generator {
 
         for(IAtomContainer reactant_mol: reactants_mols){
             for(IAtom atom: reactant_mol.atoms()) {
-                if(atom.getMapIdx() != 0 && reverse_mapIds.containsKey(atom.getMapIdx())){
+                if(atom.getMapIdx() != 0 && reverse_mapIds.containsKey(atom.getMapIdx()) && reactants_hydrogen.get(reverse_mapIds.get(atom.getMapIdx())) != null){
                     int hydrogen_count = reactants_hydrogen.get(reverse_mapIds.get(atom.getMapIdx()));
                     reactants_bonds_count.put(atom.getMapIdx(), hydrogen_count);
                 }
@@ -1024,7 +1030,7 @@ public class rule_generator {
 
         for(IAtomContainer product_mol: products_mols){
             for(IAtom atom: product_mol.atoms()) {
-                if(atom.getMapIdx() != 0 && reverse_mapIds.containsKey(atom.getMapIdx())){
+                if(atom.getMapIdx() != 0 && reverse_mapIds.containsKey(atom.getMapIdx()) && products_hydrogen.get(reverse_mapIds.get(atom.getMapIdx())) != null){
                     int hydrogen_count = products_hydrogen.get(reverse_mapIds.get(atom.getMapIdx()));
                     products_bonds_count.put(atom.getMapIdx(), hydrogen_count);
                 }
@@ -1444,6 +1450,7 @@ public class rule_generator {
         Map<IBond.Order, String> bond_symbol = new HashMap<>();
         bond_symbol.put(IBond.Order.SINGLE, "-");
         bond_symbol.put(IBond.Order.DOUBLE, "=");
+        bond_symbol.put(IBond.Order.TRIPLE, "#");
 
         getSegmentsWithID(smart, segments, segments_mapId);
 

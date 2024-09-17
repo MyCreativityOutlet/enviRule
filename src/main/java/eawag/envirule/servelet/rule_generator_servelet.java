@@ -3,7 +3,10 @@ package eawag.envirule.servelet;
 import eawag.envirule.modules.rule_generator;
 import org.apache.commons.cli.*;
 
+import java.util.List;
 import java.util.Set;
+
+import static eawag.envirule.modules.reactor.parseReactionFile;
 
 public class rule_generator_servelet {
 
@@ -43,8 +46,8 @@ public class rule_generator_servelet {
         boolean includeFunctionalGroups = Boolean.parseBoolean(cmd.getOptionValue("functionalGroups"));
         String file = cmd.getOptionValue("inputFile");
         int r = Integer.valueOf(cmd.getOptionValue("radius"));
-
-        rule_generator generator = new rule_generator(generalizeIgnoreHydrogen, includeFunctionalGroups, file, r);
+        List<String> reactions = parseReactionFile(file);
+        rule_generator generator = new rule_generator(generalizeIgnoreHydrogen, includeFunctionalGroups, reactions, r);
         Set<String> rules = generator.generate();
 
         for (String rule: rules){
@@ -55,8 +58,8 @@ public class rule_generator_servelet {
     }
 
     public Set<String> run(boolean generalizeIgnoreHydrogen, boolean includeFunctionalGroups, String file, int radius) throws Exception {
-
-        rule_generator generator = new rule_generator(generalizeIgnoreHydrogen, includeFunctionalGroups, file, radius);
+        List<String> reactions = parseReactionFile(file);
+        rule_generator generator = new rule_generator(generalizeIgnoreHydrogen, includeFunctionalGroups, reactions, radius);
         return generator.generate();
     }
 
