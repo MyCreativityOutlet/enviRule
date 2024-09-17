@@ -3,7 +3,29 @@ enviRule for Python
 
 This repository is a fork of enviRule. It has been edited to create a Py4J gateway that allows enviRule, Ambit-SMIRKS reaction running and SMILES standardisation to be called from Python.
 
-Below is the original README.md
+Note that this repository was developed with a different Java version.
+Please install Amazon Corretto 22, it can be downloaded [here](https://docs.aws.amazon.com/corretto/latest/corretto-22-ug/downloads-list.html).
+We also require Maven 3.9 to be installed, it can be downloaded [here](https://maven.apache.org/download.cgi).
+
+If you did not have these installed previously a system reboot is likely required.
+
+Check they are correctly installed with `mvn --version` and `java --version`.
+
+Maven should print something similar to this, assuming Windows 10:
+```text
+Apache Maven 3.9.6 (bc0240f3c744dd6b6ec2920b3cd08dcc295161ae)
+Maven home: C:\Users\USERNAME\apache-maven-3.9.6
+Java version: 22.0.2, vendor: Amazon.com Inc., runtime: C:\Program Files\Amazon Corretto\jdk22.0.2_9
+```
+
+Java should print something similar to this, assuming Windows 10:
+```text
+openjdk 22.0.2 2024-07-16
+OpenJDK Runtime Environment Corretto-22.0.2.9.1 (build 22.0.2+9-FR)
+OpenJDK 64-Bit Server VM Corretto-22.0.2.9.1 (build 22.0.2+9-FR, mixed mode, sharing)
+```
+
+**Below is the original README.md**
 
 ---
 Introduction
@@ -34,9 +56,10 @@ Quick start
 ======================
 Make sure you have java installed on the computer, for example:
 ```markdown
-java version "22.0.1" 2021-04-20
+java version "16.0.1" 2021-04-20
 Java(TM) SE Runtime Environment (build 16.0.1+9-24)
 Java HotSpot(TM) 64-Bit Server VM (build 16.0.1+9-24, mixed mode, sharing)
+
 ```
 Please always replace "<...>" with your local address in the following examples. The envirule_toy.jar can be found under out/artifacts/envirule_toy/
 
