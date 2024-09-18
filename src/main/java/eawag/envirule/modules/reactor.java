@@ -184,7 +184,7 @@ public class reactor {
                 }
                 msg+="\n";
             }
-            System.err.println(msg);
+            // System.err.println(msg);
         }
 
         return toSmiles(products.get(0)[0]);
