@@ -25,7 +25,9 @@ OpenJDK Runtime Environment Corretto-22.0.2.9.1 (build 22.0.2+9-FR)
 OpenJDK 64-Bit Server VM Corretto-22.0.2.9.1 (build 22.0.2+9-FR, mixed mode, sharing)
 ```
 
-**Below is the original README.md**
+To build the jar file run `mvn package`.
+
+**Below is the README.md from the original enviRule repository available [here](https://github.com/zhangky12/enviRule)**
 
 ---
 Introduction
