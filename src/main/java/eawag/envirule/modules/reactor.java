@@ -36,7 +36,7 @@ public class reactor {
         uncistransRegs.put("/", "");
         uncistransRegs.put("\\\\", "");
     }
-    private static final Set<String> basicRuleSet = new HashSet<>();
+    public static final Set<String> basicRuleSet = new HashSet<>();
     static {
         basicRuleSet.add("[H][N+:1]([H])([H])[#6:2]>>[H][#7:1]([H])-[#6:2]");
         basicRuleSet.add("[H][#8:1][C:2]#[N:3]>>[#8-:1][C:2]#[N:3]");
@@ -53,25 +53,25 @@ public class reactor {
         basicRuleSet.add("[H][#8:1]-[c:2]>>[#8-:1]-[c:2]");
     }
 
-    private static final Set<String> enhancedRuleSet = new HashSet<>();
+    public static final Set<String> enhancedRuleSet = new HashSet<>();
     static {
         enhancedRuleSet.addAll(basicRuleSet);
         enhancedRuleSet.add("[H][#8:1]-[#15:2]>>[#8-:1]-[#15:2]");
     }
 
-    private static final Set<String> exoticRuleSet = new HashSet<>();
+    public static final Set<String> exoticRuleSet = new HashSet<>();
     static {
         exoticRuleSet.addAll(enhancedRuleSet);
         exoticRuleSet.add("[H][S:1]-[#15:2]=[$([#16]),$([#8]):3]>>[S-:1]-[#15:2]=[$([#16]),$([#8]):3]");
     }
 
-    private static final Set<String> cutCoARuleSet = new HashSet<>();
+    public static final Set<String> cutCoARuleSet = new HashSet<>();
     static {
         cutCoARuleSet.addAll(exoticRuleSet);
         cutCoARuleSet.add("CC(C)(COP(O)(=O)OP(O)(=O)OCC1OC(C(O)C1OP(O)(O)=O)n1cnc2c(N)ncnc12)C(O)C(=O)NCCC(=O)NCCS[$(*):1]>>[O-][$(*):1]");
     }
 
-    private static final Set<String> enolKetoRuleSet = new HashSet<>();
+    public static final Set<String> enolKetoRuleSet = new HashSet<>();
     static {
         enolKetoRuleSet.addAll(cutCoARuleSet);
         enolKetoRuleSet.add("[H][#8:2]-[#6:3]=[#6:1]>>[#6:1]-[#6:3]=[O:2]");

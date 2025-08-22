@@ -69,6 +69,33 @@ public class enviRule_demo {
         }
     }
 
+    public static String standardizeSmiles(String smiles, String ruleset, boolean stereo) throws Exception{
+        Set<String> rules;
+        Set<LinkedHashMap<String, String>> stereo_rules = new HashSet<>();
+        if (stereo) {
+            stereo_rules.addAll(reactor.allStandardizeRegRules);
+        }
+
+        if (ruleset.equalsIgnoreCase("basic")) {
+            rules = reactor.basicRuleSet;
+        } else if (ruleset.equalsIgnoreCase("enhanced")) {
+            rules = reactor.enhancedRuleSet;
+        } else if (ruleset.equalsIgnoreCase("exotic")) {
+            rules = reactor.exoticRuleSet;
+        } else if (ruleset.equalsIgnoreCase("cutcoa")) {
+            rules = reactor.cutCoARuleSet;
+        } else if (ruleset.equalsIgnoreCase("enolketo")) {
+            rules = reactor.enolKetoRuleSet;
+        } else {
+            throw new Exception("Unknown standardisation rule set: " + ruleset);
+        }
+        try {
+            return reactor.standardizeSmiles(smiles, rules, stereo_rules);
+        } catch (Exception e) {
+            return smiles;
+        }
+    }
+
     public enviRule_demo() {
 
     }
